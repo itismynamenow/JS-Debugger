@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <title>JS-Debugger demo</title>
     <script src="src/acorn.js"></script>
     <script src="src/interpreter.js"></script>
     <script src="src/debugger.js"></script>
@@ -59,6 +60,14 @@
 
     <script>
         var code = `
+            /** usage guide:
+                    1) replace code below with your ES5 code that you want to debug
+                    2) click restart button to force debugger grab updated code
+                    3) place breakpoints by clicking on line numbers if you wish
+                    4) run code till end or closest breakpoint or step trough code node by node
+                    5) see current scope and call stack on left panel and console on panel below
+                    6) complain about bugs at https://github.com/itismynamenow/JS-Debugger
+            */
             Array.prototype.quickSort = function() {
 
                 var r = this;
