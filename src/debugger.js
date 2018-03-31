@@ -58,7 +58,7 @@ var Debugger = function(){
             code=codeString;
             codeWasSet = true;
             executionBegun = false;
-            currentStatus = "Code was just set";
+            currentStatus = "Code was just set succesfully. Press step or run. Set breakpoint at some lines if needed";
             cleanDisplay();
         }
         catch(error){
@@ -144,10 +144,10 @@ var Debugger = function(){
 
     function stepIn(){
         executionStartProcedures();
+        currentStatus = "Step was performed. Execution stopped. Press run or step";
+        displayStatus()
         interpreterStep();
         display();
-        currentStatus = "Step was performed. Execution stopped. Press run or step";
-        displayStatus();
     }
 
     function stepOver(){
@@ -165,8 +165,9 @@ var Debugger = function(){
         try{
             result = interpreter.step();
             if(!result){
-                currentStatus = "No more steps left. Execution over. Press restart to continue";
+                currentStatus = "No more steps left. Execution is over. See debugger console for output. Press restart to continue";
                 displayStatus();
+                displayScope();
             }
         }
         catch(error){
