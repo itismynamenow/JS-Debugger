@@ -45,21 +45,25 @@
     </style>
 </head>
 <body>
+
     <div>
         <div style="width:70%;float: left;">
             <div id="codeEditor"></div>
             <button onclick="stepButton()" id="stepButton" >Step</button>
             <button onclick="runButton()" id="runButton" >Run</button>
             <button onclick="restartButton()">Restart</button>
-            <button onclick="cleanConsoleButton()">Clean console</button>
+            <button onclick="cleanConsoleButton()">Clean console below</button>
             <div id="console"></div>
         </div>
         <div style="width:30%;float: left;">
+            <div>  <h3 style="text-indent: 1.5em;">  <a href="https://github.com/itismynamenow/JS-Debugger">JS-Debugger </a>demo </h3></div>
             <h5 style="text-indent: 1em;"> Call stack:</h5>
             <div id="callStackPanel"></div>
             <hr />
             <h5 style="text-indent: 1em;"> Scope:</h5>
             <div id="scopePanel"></div>
+            <h5 style="text-indent: 1em;"> Debugger status:</h5>
+            <p id="statusPanel" style="margin: 20px;"></p>
         </div>
     </div>
 
@@ -112,11 +116,13 @@
         var codeEditor = new CodeEditor(document.getElementById("codeEditor"),code);
         codeEditor.setBreakpointSetCallback(debuger.setBreakpoint);
         codeEditor.setBreakpointUnsetCallback(debuger.unsetBreakpoint);
-
-        debuger.setCode(codeEditor.getText());
         debuger.setCallbackForCodeHighlighting(codeEditor.setMarker);
         debuger.setCallbackForCallStackDisplay(displayCallStack);
         debuger.setCallbackForScopeDisplay(displayScope);
+        debuger.setCallbackForStatusChange(displayStatus);
+
+        debuger.setCode(codeEditor.getText());
+
 
         function runButton(){
             debuger.run();
@@ -142,6 +148,11 @@
             callStackPanel.innerHTML = "";
             var formatter = new jsonFormatter(callStack);
             callStackPanel.appendChild(formatter.render());
+        }
+
+        function displayStatus(statusString) {
+            var statusPanel = document.getElementById("statusPanel");
+            statusPanel.innerHTML = statusString;
         }
 
         (function () {

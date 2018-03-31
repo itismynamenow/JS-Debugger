@@ -34,11 +34,13 @@ var Debugger = function(){
     var highlightingFunction;
     var scopeDisplayFunction;
     var callStackDisplayFunction;
+    var statusDisplayFunction;
     var temporaryDisabledBreakpoint = -1;
     var code;
     var codeWasSet = false;
     var lastExecutedNode;
     var lastScope;
+    var currentStatus = "Debugger just created";
 
     function addObjectToGlobalScope(object,objectName){
         objectsAddedToGlobalScope.push({'object':object,'objectName':objectName})
@@ -56,11 +58,14 @@ var Debugger = function(){
             code=codeString;
             codeWasSet = true;
             executionBegun = false;
+            currentStatus = "Code was just set";
             cleanDisplay();
         }
         catch(error){
             console.error(error);
+            currentStatus = "Code was not set due to error. Fix error and restart";
         }
+        displayStatus();
     }
 
     function setBreakpoint(lineNumber){
@@ -97,6 +102,8 @@ var Debugger = function(){
             //Check if node that we execute next is on line with breakpoint
             if(loc && loc.start && loc.start.line-1 !== temporaryDisabledBreakpoint && breakpoints.has(loc.start.line-1)){
                 temporaryDisabledBreakpoint = loc.start.line-1;
+                currentStatus = "Breakpoint encountered on line:"+temporaryDisabledBreakpoint+" execution paused. Press step or run to continue";
+                displayStatus();
                 display();
                 break;
             }
@@ -139,6 +146,8 @@ var Debugger = function(){
         executionStartProcedures();
         interpreterStep();
         display();
+        currentStatus = "Step was performed. Execution stopped. Press run or step";
+        displayStatus();
     }
 
     function stepOver(){
@@ -155,6 +164,10 @@ var Debugger = function(){
         lastScope = getScope();
         try{
             result = interpreter.step();
+            if(!result){
+                currentStatus = "No more steps left. Execution over. Press restart to continue";
+                displayStatus();
+            }
         }
         catch(error){
             if(lastExecutedNode && lastExecutedNode.loc){
@@ -170,6 +183,8 @@ var Debugger = function(){
             highlightCode(lastExecutedNode);
             displayScope(lastScope)
             console.error(error);
+            currentStatus = "Error during execution. Fix it and press restart";
+            displayStatus();
         }
         return result;
     }
@@ -218,6 +233,10 @@ var Debugger = function(){
         callStackDisplayFunction = callback;
     }
 
+    function setCallbackForStatusChange(callback){
+        statusDisplayFunction = callback;
+    }
+
     function display() {
         highlightCode(interpreter.stateStack[interpreter.stateStack.length - 1].node);
         displayScope();
@@ -258,6 +277,12 @@ var Debugger = function(){
         }
     }
 
+    function displayStatus(){
+        if(statusDisplayFunction){
+            statusDisplayFunction(currentStatus);
+        }
+    }
+
     function logError(location, message){
         console.error("In Debugger::"+location+"() '"+message+"'");
     }
@@ -276,6 +301,7 @@ var Debugger = function(){
         unsetBreakpoint:unsetBreakpoint,
         setCallbackForCodeHighlighting:setCallbackForCodeHighlighting,
         setCallbackForCallStackDisplay:setCallbackForCallStackDisplay,
-        setCallbackForScopeDisplay:setCallbackForScopeDisplay
+        setCallbackForScopeDisplay:setCallbackForScopeDisplay,
+        setCallbackForStatusChange:setCallbackForStatusChange
     }
 }
