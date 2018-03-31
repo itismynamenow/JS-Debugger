@@ -24,15 +24,16 @@ var CodeEditor = function (parentHtmlElement,initialCode,initialWidth,initialHei
             matchBrackets: true,
             comment: true,
             theme: "rubyblue",
-            // gutters: ["CodeMirror-lint-markers"],
+            lint: true,
             styleSelectedText: true,
             highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true},
-            gutters: ["CodeMirror-linenumbers", "breakpoints"]
+            gutters: ["CodeMirror-linenumbers", "breakpoints","CodeMirror-lint-markers"]
         }
 
         //Create CodeMirror instance and set size
         editor = CodeMirror.fromTextArea(this.editorCodeMirror,codeMirrorSettings)
         editor.setSize(initialWidth,initialHeight);
+        editor.setOption('lint', { options: { asi: true }});
         editor.setValue(initialCode);
 
         var breakpointSetCallback;
