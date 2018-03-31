@@ -37,6 +37,8 @@ var Debugger = function(){
     var temporaryDisabledBreakpoint = -1;
     var code;
     var codeWasSet = false;
+    var lastExecutedNode;
+    var lastScope;
 
     function addObjectToGlobalScope(object,objectName){
         objectsAddedToGlobalScope.push({'object':object,'objectName':objectName})
@@ -104,7 +106,7 @@ var Debugger = function(){
             }
 
             //Check if are any steps left
-            if(!interpreter.step()){
+            if(!interpreterStep()){
                 break;
             }
         }
@@ -135,7 +137,7 @@ var Debugger = function(){
 
     function stepIn(){
         executionStartProcedures();
-        interpreter.step();
+        interpreterStep();
         display();
     }
 
@@ -145,6 +147,31 @@ var Debugger = function(){
 
     function stepOut(){
         executionStartProcedures();
+    }
+
+    function interpreterStep(){
+        var result;
+        lastExecutedNode = interpreter.stateStack[interpreter.stateStack.length - 1].node;
+        lastScope = getScope();
+        try{
+            result = interpreter.step();
+        }
+        catch(error){
+            if(lastExecutedNode && lastExecutedNode.loc){
+                error['location'] = 
+                "See highlighted code between (line:"+lastExecutedNode.loc.start.line+
+                " | column:"+lastExecutedNode.loc.start.column+
+                ") and (line:"+lastExecutedNode.loc.end.line+
+                " | column:"+lastExecutedNode.loc.end.column+")";
+            }
+            if(scopeDisplayFunction){
+                error.message +=". See last scope in scope section.";
+            }
+            highlightCode(lastExecutedNode);
+            displayScope(lastScope)
+            console.error(error);
+        }
+        return result;
     }
 
     function setStepOptions(){
@@ -164,7 +191,7 @@ var Debugger = function(){
     function getCallStack(){
         if(executionBegun)
         {
-            let callStack = [];
+            var callStack = [];
             //stateStack contains stack scopes for all ast nodes so scopes repeate over and over again
             //to make call stack I think we need to select only non repeating scopes (this can be wrong though)
             for(var i=0;i<interpreter.stateStack.length;i++){
@@ -215,9 +242,13 @@ var Debugger = function(){
         }
     }
 
-    function displayScope(){
+    function displayScope(scope){
         if(scopeDisplayFunction){
-            scopeDisplayFunction(getScope());
+            if(scope){
+                scopeDisplayFunction(scope);
+            }else{
+                scopeDisplayFunction(getScope());
+            }
         }
     }
 

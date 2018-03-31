@@ -36,7 +36,7 @@
         .cm-matchhighlight {background-color: #345675
         }
         .CodeMirror-selection-highlight-scrollbar {background-color: green}
-        .styled-background { background-color: #404259; }
+        .styled-background { background-color: #1c4679; }
     </style>
 </head>
 <body>
@@ -140,11 +140,15 @@
             if (!console) {
                 console = {};
             }
-            var old = console.log;
-            console.logOld = old;
+            var oldLog = console.log;
+            console.logOld = oldLog;
             var logger = document.getElementById('console');
             console.log = function (message) {
                 const formatter = new jsonFormatter(message);
+                logger.appendChild(formatter.render());
+            };
+            console.error = function (message) {
+                const formatter = new jsonFormatter({class:"Error",location:message.location,message:message.message,stack:message.stack});
                 logger.appendChild(formatter.render());
             }
         })();
