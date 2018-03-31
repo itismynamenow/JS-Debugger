@@ -76,6 +76,9 @@
                  notes:
                     1) objects are presented in a bit wierd way (to see array or object entries/properties you need to click "property"
                     2) this debugger has same limitations as interpreter.js (only ES5, you can't overwrite toString (I guess), 200 slower .etc)
+                    3) all code is sandboxed. Only console is added to debugger global scope. So no access to dom etc. Though API allows to do it.
+                    For more details just step through any code and see first element of call stack which is debugger's global scope
+                    4) to determine what is ES5 and what is not linter is builed into this editor. If it is unhappy (errors) code will not work.
             */
             Array.prototype.quickSort = function() {
 
