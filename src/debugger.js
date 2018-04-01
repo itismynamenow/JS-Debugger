@@ -35,6 +35,7 @@ var Debugger = function(){
     var scopeDisplayFunction;
     var callStackDisplayFunction;
     var statusDisplayFunction;
+    var astDisplayFunction;
     var temporaryDisabledBreakpoint = -1;
     var code;
     var codeWasSet = false;
@@ -58,8 +59,9 @@ var Debugger = function(){
             code=codeString;
             codeWasSet = true;
             executionBegun = false;
-            currentStatus = "Code was just set succesfully. Press step or run. Set breakpoint at some lines if needed";
+            currentStatus = "Code was just set succesfully. Press step or run. Set breakpoint at some lines if needed. Explore AST if you want.";
             cleanDisplay();
+            displayAst();
         }
         catch(error){
             console.error(error);
@@ -238,6 +240,10 @@ var Debugger = function(){
         statusDisplayFunction = callback;
     }
 
+    function setCallbackForAstDisplay(callback){
+        astDisplayFunction = callback;
+    }
+
     function display() {
         highlightCode(interpreter.stateStack[interpreter.stateStack.length - 1].node);
         displayScope();
@@ -284,8 +290,25 @@ var Debugger = function(){
         }
     }
 
+    function displayAst(){
+        if(astDisplayFunction){
+            astDisplayFunction(interpreter.ast);
+        }
+    }
+
+
+
     function logError(location, message){
         console.error("In Debugger::"+location+"() '"+message+"'");
+    }
+
+    function getAst(){
+        if(codeWasSet){
+            return interpreter
+        }
+        else{
+            return null;
+        }
     }
 
     return{
@@ -303,6 +326,7 @@ var Debugger = function(){
         setCallbackForCodeHighlighting:setCallbackForCodeHighlighting,
         setCallbackForCallStackDisplay:setCallbackForCallStackDisplay,
         setCallbackForScopeDisplay:setCallbackForScopeDisplay,
-        setCallbackForStatusChange:setCallbackForStatusChange
+        setCallbackForStatusChange:setCallbackForStatusChange,
+        setCallbackForAstDisplay:setCallbackForAstDisplay
     }
 }

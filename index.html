@@ -61,7 +61,7 @@
             <button onclick="runButton()" id="runButton" >Run</button>
             <button onclick="restartButton()">Restart</button>
             <button onclick="cleanConsoleButton()">Clean console below</button>
-            <button id="myBtn">Open help popup</button>
+            <button id="helpPopupButton">Open help popup</button>
             <div style="width:100%">
                 <h5 style="margin: 10px;width:80px;float: left;"> Debugger console:</h5>
                 <div id="console" style="overflow: auto; height:22vh;float: left;width:calc(100% - 100px);"></div>
@@ -77,6 +77,8 @@
             <hr />
             <h5 style="margin: 10px;"> Scope:</h5>
             <div id="scopePanel" style="margin: 20px;"></div>
+            <h5 style="margin: 10px;"> AST tree(For educational puproses):</h5>
+            <div id="astPanel" style="margin: 20px;"></div>
         </div>
     </div>
 
@@ -154,6 +156,7 @@
         debuger.setCallbackForCodeHighlighting(codeEditor.setMarker);
         debuger.setCallbackForCallStackDisplay(displayCallStack);
         debuger.setCallbackForScopeDisplay(displayScope);
+        debuger.setCallbackForAstDisplay(displayAst);
         debuger.setCallbackForStatusChange(displayStatus);
 
         debuger.setCode(codeEditor.getText());
@@ -188,6 +191,12 @@
         function displayStatus(statusString) {
             var statusPanel = document.getElementById("statusPanel");
             statusPanel.innerHTML = statusString;
+        }
+
+        function displayAst(ast) {
+            var astPanel = document.getElementById("astPanel");
+            var formatter = new jsonFormatter(ast);
+            astPanel.appendChild(formatter.render());
         }
 
         (function () {
