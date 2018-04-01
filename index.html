@@ -3,14 +3,22 @@
 <head>
     <meta charset="utf-8">
     <title>JS-Debugger demo</title>
+
+    <!--Main code that does actual job-->
     <script src="src/acorn.js"></script>
     <script src="src/interpreter.js"></script>
     <script src="src/debugger.js"></script>
 
+    <!--Visualisation stuff-->
     <script src="demoSrc/json-formatterBrowserified.js"></script>
     <script src="demoSrc/codeEditor.js"></script>
+    <script src="demoSrc/modal.js"></script>
+
+    <!--Popup-->
+    <link rel="stylesheet" href="demoSrc/modal.css">
 
     <!--CodeMirrior-->
+    <link rel="stylesheet" href="demoSrc/CodeMirror/docs.css">
     <link rel="stylesheet" href="demoSrc/CodeMirror/docs.css">
     <link rel="stylesheet" href="demoSrc/CodeMirror/codemirror.css">
     <link rel="stylesheet" href="demoSrc/CodeMirror/rubyblue.css">
@@ -53,6 +61,7 @@
             <button onclick="runButton()" id="runButton" >Run</button>
             <button onclick="restartButton()">Restart</button>
             <button onclick="cleanConsoleButton()">Clean console below</button>
+            <button id="myBtn">Open help popup</button>
             <div style="width:100%">
                 <h5 style="margin: 10px;width:80px;float: left;"> Debugger console:</h5>
                 <div id="console" style="overflow: auto; height:22vh;float: left;width:calc(100% - 100px);"></div>
@@ -71,21 +80,43 @@
         </div>
     </div>
 
+    <!-- The Modal -->
+    <div id="myModal" class="modal">
+
+        <!-- Modal content -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close">&times;</span>
+                <h2>Some badly made help</h2>
+            </div>
+            <div class="modal-body">
+                <p>Usage guide:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1) replace code below with your ES5 code that you want to debug<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2) click restart button to force debugger to grab updated code<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3) place breakpoints by clicking on line numbers if you wish<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4) run code till end/closest breakpoint or step trough code node by node (AST node)<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 5) see current scope and call stack on left panel and output in console<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 6) complain about bugs at https://github.com/itismynamenow/JS-Debugger</p>
+                <p>Notes:<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1) objects are presented in a bit wierd way (to see array or object entries/properties you need to click on "property" inside object with class:Object or Array<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 2) this debugger has same limitations as interpreter.js (https://github.com/NeilFraser/JS-Interpreter) (only ES5, you can't overwrite toString (I guess), 200 slower .etc)<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3) all code is sandboxed. Only console is added to debugger global scope. So no access to dom etc. Though debugger.js API allows to do it. For more details just run any code. In the end of execution under scope you will see global scope of debugger and all it contains<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4) to determine what is ES5 and what is not linter is builed into this editor. If it is unhappy (errors) code will not work.<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </p>
+            </div>
+            <div class="modal-footer">
+                <h3>Amen...</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="demoSrc/modal.js"></script>
+
     <script>
         var code = `
-            /** usage guide:
+            /** Usage guide:
                     1) replace code below with your ES5 code that you want to debug
-                    2) click restart button to force debugger grab updated code
+                    2) click restart button to force debugger to grab updated code
                     3) place breakpoints by clicking on line numbers if you wish
-                    4) run code till end or closest breakpoint or step trough code node by node
-                    5) see current scope and call stack on left panel and console on panel below
+                    4) run code till end/closest breakpoint or step trough code node by node (AST node)
+                    5) see current scope and call stack on left panel and output in console
                     6) complain about bugs at https://github.com/itismynamenow/JS-Debugger
 
-                 notes:
-                    1) objects are presented in a bit wierd way (to see array or object entries/properties you need to click "property"
+                 Notes:
+                    1) objects are presented in a bit wierd way (to see array or object entries/properties you need to click on "property" inside object with class:Object or Array
                     2) this debugger has same limitations as interpreter.js (only ES5, you can't overwrite toString (I guess), 200 slower .etc)
-                    3) all code is sandboxed. Only console is added to debugger global scope. So no access to dom etc. Though API allows to do it.
-                    For more details just step through any code and see first element of call stack which is debugger's global scope
+                    3) all code is sandboxed. Only console is added to debugger global scope. So no access to dom etc. Though debugger.js API allows to do it.
+                    For more details just run any code. In the end of execution under scope you will see global scope of debugger and all it contains
                     4) to determine what is ES5 and what is not linter is builed into this editor. If it is unhappy (errors) code will not work.
             */
             Array.prototype.quickSort = function() {
