@@ -165,7 +165,7 @@ var Debugger = function(){
         try{
             result = interpreter.step();
             if(!result){
-                currentStatus = "No more steps left. Execution is over. See debugger console for output. Press restart to continue";
+                currentStatus = "No more steps left. Execution is over. See console for output. See scope for state of global scope. Press restart to continue";
                 displayStatus();
                 displayScope();
             }

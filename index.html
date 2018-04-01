@@ -44,7 +44,7 @@
         .styled-background { background-color: #1c4679; }
     </style>
 </head>
-<body>
+<body style="height: 100%;overflow:hidden;">
 
     <div>
         <div style="width:70%;float: left;">
@@ -53,17 +53,21 @@
             <button onclick="runButton()" id="runButton" >Run</button>
             <button onclick="restartButton()">Restart</button>
             <button onclick="cleanConsoleButton()">Clean console below</button>
-            <div id="console"></div>
+            <div style="width:100%">
+                <h5 style="margin: 10px;width:80px;float: left;"> Debugger console:</h5>
+                <div id="console" style="overflow: auto; height:22vh;float: left;width:calc(100% - 100px);"></div>
+            </div>
+
         </div>
-        <div style="width:30%;float: left;">
-            <div>  <h3 style="text-indent: 1.5em;">  <a href="https://github.com/itismynamenow/JS-Debugger">JS-Debugger </a>demo </h3></div>
-            <h5 style="text-indent: 1em;"> Call stack:</h5>
-            <div id="callStackPanel"></div>
-            <hr />
-            <h5 style="text-indent: 1em;"> Scope:</h5>
-            <div id="scopePanel"></div>
-            <h5 style="text-indent: 1em;"> Debugger status:</h5>
+        <div style="width:30%;float: left;overflow: auto; height:100vh;">
+            <div>  <h3 style="margin: 15px;">  <a href="https://github.com/itismynamenow/JS-Debugger">JS-Debugger </a>demo </h3></div>
+            <h5 style="margin: 10px;"> Debugger status:</h5>
             <p id="statusPanel" style="margin: 20px;"></p>
+            <h5 style="text-indent: 1em;"> Call stack:</h5>
+            <div id="callStackPanel" style="margin: 20px;"></div>
+            <hr />
+            <h5 style="margin: 10px;"> Scope:</h5>
+            <div id="scopePanel" style="margin: 20px;"></div>
         </div>
     </div>
 
@@ -165,10 +169,12 @@
             console.log = function (message) {
                 const formatter = new jsonFormatter(message);
                 logger.appendChild(formatter.render());
+                logger.scrollTop = logger.scrollHeight - logger.clientHeight;
             };
             console.error = function (message) {
                 const formatter = new jsonFormatter({class:"Error",location:message.location,message:message.message,stack:message.stack});
                 logger.appendChild(formatter.render());
+                logger.scrollTop = logger.scrollHeight - logger.clientHeight;
             }
         })();
 

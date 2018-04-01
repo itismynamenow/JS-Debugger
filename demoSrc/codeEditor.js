@@ -3,7 +3,7 @@ var CodeEditor = function (parentHtmlElement,initialCode,initialWidth,initialHei
         //Set defaults
         var defaultInitialCode = "Add JS code here";
         var defaultWidth = "100%";
-        var defaultHeight = "100%";
+        var defaultHeight = "75vh";
 
         //Check arguments
         initialCode = undefinedCheck(initialCode, defaultInitialCode);
