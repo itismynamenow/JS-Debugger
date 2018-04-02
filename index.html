@@ -7,6 +7,7 @@
     <!--Main code that does actual job-->
     <script src="src/acorn.js"></script>
     <script src="src/interpreter.js"></script>
+    <script src="src/escopeBrowserified.js"></script>
     <script src="src/debugger.js"></script>
 
     <!--Visualisation stuff-->
@@ -79,6 +80,8 @@
             <div id="scopePanel" style="margin: 20px;"></div>
             <h5 style="margin: 10px;"> AST tree(For educational puproses):</h5>
             <div id="astPanel" style="margin: 20px;"></div>
+            <h5 style="margin: 10px;"> Scopes (For educational puproses):</h5>
+            <div id="scopesPanel" style="margin: 20px;"></div>
         </div>
     </div>
 
@@ -158,6 +161,7 @@
         debuger.setCallbackForScopeDisplay(displayScope);
         debuger.setCallbackForAstDisplay(displayAst);
         debuger.setCallbackForStatusChange(displayStatus);
+        debuger.setCallbackForScopesDisplay(displayScopes);
 
         debuger.setCode(codeEditor.getText());
 
@@ -197,6 +201,12 @@
             var astPanel = document.getElementById("astPanel");
             var formatter = new jsonFormatter(ast);
             astPanel.appendChild(formatter.render());
+        }
+
+        function displayScopes(scopes) {
+            var scopesPanel = document.getElementById("scopesPanel");
+            var formatter = new jsonFormatter(scopes);
+            scopesPanel.appendChild(formatter.render());
         }
 
         (function () {

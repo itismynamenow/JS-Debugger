@@ -36,6 +36,7 @@ var Debugger = function(){
     var callStackDisplayFunction;
     var statusDisplayFunction;
     var astDisplayFunction;
+    var scopesDisplayFunction;
     var temporaryDisabledBreakpoint = -1;
     var code;
     var codeWasSet = false;
@@ -62,6 +63,10 @@ var Debugger = function(){
             currentStatus = "Code was just set succesfully. Press step or run. Set breakpoint at some lines if needed. Explore AST if you want.";
             cleanDisplay();
             displayAst();
+
+            var scopeManager = escope.analyze(interpreter.ast,{sourceType:"script",ecmaVersion:5});
+            var currentScope = scopeManager.acquire(interpreter.ast);
+            displayScopes(scopeManager)
         }
         catch(error){
             console.error(error);
@@ -97,7 +102,7 @@ var Debugger = function(){
     function run(){
         executionStartProcedures();
         while (!interpreter.paused) {
-            if (interpreter.stateStack.length) {
+            if (interpreter.stateStack.length > 0) {
                 var loc = interpreter.stateStack[interpreter.stateStack.length - 1].node.loc
             }
 
@@ -244,6 +249,10 @@ var Debugger = function(){
         astDisplayFunction = callback;
     }
 
+    function setCallbackForScopesDisplay(callback){
+        scopesDisplayFunction = callback;
+    }
+
     function display() {
         highlightCode(interpreter.stateStack[interpreter.stateStack.length - 1].node);
         displayScope();
@@ -296,6 +305,11 @@ var Debugger = function(){
         }
     }
 
+    function displayScopes(scopes){
+        if(scopesDisplayFunction){
+            scopesDisplayFunction(scopes);
+        }
+    }
 
 
     function logError(location, message){
@@ -327,6 +341,7 @@ var Debugger = function(){
         setCallbackForCallStackDisplay:setCallbackForCallStackDisplay,
         setCallbackForScopeDisplay:setCallbackForScopeDisplay,
         setCallbackForStatusChange:setCallbackForStatusChange,
-        setCallbackForAstDisplay:setCallbackForAstDisplay
+        setCallbackForAstDisplay:setCallbackForAstDisplay,
+        setCallbackForScopesDisplay:setCallbackForScopesDisplay
     }
 }
