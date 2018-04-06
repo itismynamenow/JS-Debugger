@@ -11,15 +11,16 @@
     <script src="src/debugger.js"></script>
 
     <!--Visualisation stuff-->
-    <script src="demoSrc/json-formatterBrowserified.js"></script>
+    <script src="demoSrc/PrettyPrinter.js"></script>
+    <script src="demoSrc/jsonFormatter.js "></script>
     <script src="demoSrc/codeEditor.js"></script>
     <script src="demoSrc/modal.js"></script>
 
     <!--Popup-->
     <link rel="stylesheet" href="demoSrc/modal.css">
+    <link rel="stylesheet" href="demoSrc/style.css">
 
     <!--CodeMirrior-->
-    <link rel="stylesheet" href="demoSrc/CodeMirror/docs.css">
     <link rel="stylesheet" href="demoSrc/CodeMirror/docs.css">
     <link rel="stylesheet" href="demoSrc/CodeMirror/codemirror.css">
     <link rel="stylesheet" href="demoSrc/CodeMirror/rubyblue.css">
@@ -150,6 +151,7 @@
             var a = [3,1,43,5,123,6,231,0];
             console.log(a.quickSort());
         `;
+        var jsonFormatter = JSONFormatter;
         var debuger = new Debugger();
         debuger.addObjectToGlobalScope(console,"console");
 
@@ -198,8 +200,38 @@
         }
 
         function displayAst(ast) {
+            var interface = ["loc","range","start","end"];
+            var transformerFunction = function (object) {
+                function copyObject(object)
+                {
+                    var copy = {};
+                    for(property in object){
+                        copy[property] = object[property];
+                    }
+                    return copy;
+                }
+                var locationString = object.loc.start.line+"/"+object.loc.start.column+" - "+object.loc.end.line+"/"+object.loc.end.column;
+                var objectCopy = copyObject(object);
+                delete objectCopy.loc;
+                delete objectCopy.range;
+                delete objectCopy.start;
+                delete objectCopy.end;
+                objectCopy.location = locationString;
+                return objectCopy;
+            }
+            var objectCustomFormattingFunction = function (htmlElement,json) {
+                var button = document.createElement("BUTTON");
+                button.innerHTML = "Show";
+                button.onclick = onButtonClick;
+                htmlElement.appendChild(button);
+                function onButtonClick(){
+                    codeEditor.setMarker(json.loc);
+                }
+            }
+
+            var prettyPrinter = new PrettyPrinter(interface,transformerFunction,objectCustomFormattingFunction);
             var astPanel = document.getElementById("astPanel");
-            var formatter = new jsonFormatter(ast);
+            var formatter = new JSONFormatter(ast,undefined,{customPrettyPrinters:[prettyPrinter]},"AST");
             astPanel.appendChild(formatter.render());
         }
 

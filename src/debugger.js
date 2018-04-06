@@ -66,7 +66,7 @@ var Debugger = function(){
 
             var scopeManager = escope.analyze(interpreter.ast,{sourceType:"script",ecmaVersion:5});
             var currentScope = scopeManager.acquire(interpreter.ast);
-            displayScopes(scopeManager)
+            displayScopes(scopeManager.scopes);
         }
         catch(error){
             console.error(error);
