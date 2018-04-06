@@ -200,44 +200,14 @@
         }
 
         function displayAst(ast) {
-            var interface = ["loc","range","start","end"];
-            var transformerFunction = function (object) {
-                function copyObject(object)
-                {
-                    var copy = {};
-                    for(property in object){
-                        copy[property] = object[property];
-                    }
-                    return copy;
-                }
-                var locationString = object.loc.start.line+"/"+object.loc.start.column+" - "+object.loc.end.line+"/"+object.loc.end.column;
-                var objectCopy = copyObject(object);
-                delete objectCopy.loc;
-                delete objectCopy.range;
-                delete objectCopy.start;
-                delete objectCopy.end;
-                objectCopy.location = locationString;
-                return objectCopy;
-            }
-            var objectCustomFormattingFunction = function (htmlElement,json) {
-                var button = document.createElement("BUTTON");
-                button.innerHTML = "Show";
-                button.onclick = onButtonClick;
-                htmlElement.appendChild(button);
-                function onButtonClick(){
-                    codeEditor.setMarker(json.loc);
-                }
-            }
-
-            var prettyPrinter = new PrettyPrinter(interface,transformerFunction,objectCustomFormattingFunction);
             var astPanel = document.getElementById("astPanel");
-            var formatter = new JSONFormatter(ast,undefined,{customPrettyPrinters:[prettyPrinter]},"AST");
+            var formatter = new JSONFormatter(ast,undefined,{customPrettyPrinters:[prettyPrinterAst]},"AST");
             astPanel.appendChild(formatter.render());
         }
 
         function displayScopes(scopes) {
             var scopesPanel = document.getElementById("scopesPanel");
-            var formatter = new jsonFormatter(scopes);
+            var formatter = new JSONFormatter(scopes,undefined,{customPrettyPrinters:[prettyPrinterScopes,prettyPrinterAst]},"All Scopes");
             scopesPanel.appendChild(formatter.render());
         }
 
