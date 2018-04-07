@@ -209,7 +209,7 @@
         function displayScopes(scopes) {
             var scopesPanel = document.getElementById("scopesPanel");
             scopesPanel.innerHTML = "";
-            var formatter = new JSONFormatter(scopes,undefined,{customPrettyPrinters:[prettyPrinterScopes,prettyPrinterAst,prettyPrinterScopesVariable]},"All Scopes");
+            var formatter = new JSONFormatter(scopes,undefined,{customPrettyPrinters:[prettyPrinterScopes,prettyPrinterAst,prettyPrinterScopesVariable,prettyPrinterScopesReference]},"All Scopes");
             scopesPanel.appendChild(formatter.render());
         }
 

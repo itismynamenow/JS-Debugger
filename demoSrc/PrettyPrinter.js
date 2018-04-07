@@ -105,7 +105,7 @@ var interface = {
     defs:undefined,
     tainted:undefined,
     stack:undefined,
-    scope:undefined,};
+    scope:undefined};
 var transformerFunction = function (object) {
     var prettyObject = {};
     prettyObject.name = object.name;
@@ -130,3 +130,35 @@ var objectCustomTypeFunction = function (json) {
     }
 }
 var prettyPrinterScopesVariable = new PrettyPrinter(interface,transformerFunction,objectCustomFormattingFunction,undefined,objectCustomTypeFunction);
+
+//Scopes: Reference
+var interface = {
+    identifier:undefined,
+    from:undefined,
+    tainted:undefined,
+    flag:undefined
+};
+var transformerFunction = function (object) {
+    var prettyObject = {};
+    prettyObject.name = object.name;
+    return prettyObject;
+}
+
+var objectCustomFormattingFunction = function (htmlElement,json) {
+    var button = document.createElement("BUTTON");
+    button.innerHTML = "Show";
+    button.onclick = onButtonClick;
+    htmlElement.appendChild(button);
+    function onButtonClick(){
+        if(json.identifier && json.identifier.loc){
+            codeEditor.setMarker(json.identifier.loc);
+        }
+    }
+}
+
+var objectCustomTypeFunction = function (json) {
+    if(json.identifier && json.identifier.name){
+        return json.identifier.name;
+    }
+}
+var prettyPrinterScopesReference = new PrettyPrinter(interface,transformerFunction,objectCustomFormattingFunction,undefined,objectCustomTypeFunction);
