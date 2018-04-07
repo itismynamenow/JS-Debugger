@@ -37,7 +37,7 @@ var PrettyPrinter = function(interface,transformerFunction, objectCustomFormatti
         getCustomFormattingFunctionForProperty:getCustomFormattingFunctionForProperty
     };
 };
-
+//Ast
 var interface = {"loc":undefined,"range":undefined,"start":undefined,"end":undefined};
 var transformerFunction = function (object) {
     function copyObject(object)
@@ -67,7 +67,7 @@ var objectCustomFormattingFunction = function (htmlElement,json) {
 }
 
 var prettyPrinterAst = new PrettyPrinter(interface,transformerFunction,objectCustomFormattingFunction);
-
+//Scopes
 var interface = {"variables":undefined,"set":undefined,"taints":undefined,"dynamic":undefined};
 var transformerFunction = function (object) {
     var prettyObject = {
@@ -80,7 +80,7 @@ var transformerFunction = function (object) {
     return prettyObject
 }
 var prettyPrinterScopes = new PrettyPrinter(interface,transformerFunction);
-
+//Array
 var interface = {"getter":undefined,"setter":undefined,"proto":undefined,"properties":undefined,"class":"Array"};
 var transformerFunction = function (object) {
     var prettyObject = [];
@@ -91,3 +91,30 @@ var transformerFunction = function (object) {
     return prettyObject;
 }
 var prettyPrinterArray = new PrettyPrinter(interface,transformerFunction);
+//Scopes: Variable
+var interface = {
+    name:undefined,
+    identifiers:undefined,
+    references:undefined,
+    defs:undefined,
+    tainted:undefined,
+    stack:undefined,
+    scope:undefined,};
+var transformerFunction = function (object) {
+    var prettyObject = {};
+    prettyObject.name = object.name;
+    return prettyObject;
+}
+
+var objectCustomFormattingFunction = function (htmlElement,json) {
+    var button = document.createElement("BUTTON");
+    button.innerHTML = "Show";
+    button.onclick = onButtonClick;
+    htmlElement.appendChild(button);
+    function onButtonClick(){
+        if(json.identifiers[0] && json.identifiers[0].loc){
+            codeEditor.setMarker(json.identifiers[0].loc);
+        }
+    }
+}
+var prettyPrinterScopesVariable = new PrettyPrinter(interface,transformerFunction,objectCustomFormattingFunction);
