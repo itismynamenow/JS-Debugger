@@ -94,6 +94,10 @@ window['JSONFormatter'] = /** @class */ (function () {
                     this.oldJson = this.json;
                     this.json = prettyPrinter.getPrettifiedObject(this.json);
                     this.individualConfig.applyCustomFormatting = prettyPrinter.getObjectCustomFormattingFucntion();
+                    var customKey = prettyPrinter.getObjectCustomType(this.oldJson);
+                    if(customKey){
+                        this.key = customKey;
+                    }
                 }
             }           
         }

@@ -1,4 +1,4 @@
-var PrettyPrinter = function(interface,transformerFunction, objectCustomFormattingFunction, propertiesCustomFormattingFunctions){
+var PrettyPrinter = function(interface,transformerFunction, objectCustomFormattingFunction, propertiesCustomFormattingFunctions,objectCustomTypeFunction,propertiesCustomTypesFunction){
     function getPrettifiedObject(object) {
         return transformerFunction(object);
 
@@ -30,11 +30,17 @@ var PrettyPrinter = function(interface,transformerFunction, objectCustomFormatti
         if(property && propertiesCustomFormattingFunctions)
             return propertiesCustomFormattingFunctions[property];
     }
+    function getObjectCustomType(json){
+        if(objectCustomTypeFunction){            
+            return objectCustomTypeFunction(json);
+        }
+    }
     return{
         getPrettifiedObject:getPrettifiedObject,
         doesInterfaceMatch:doesInterfaceMatch,
         getObjectCustomFormattingFucntion:getObjectCustomFormattingFucntion,
-        getCustomFormattingFunctionForProperty:getCustomFormattingFunctionForProperty
+        getCustomFormattingFunctionForProperty:getCustomFormattingFunctionForProperty,
+        getObjectCustomType:getObjectCustomType
     };
 };
 //Ast
@@ -117,4 +123,10 @@ var objectCustomFormattingFunction = function (htmlElement,json) {
         }
     }
 }
-var prettyPrinterScopesVariable = new PrettyPrinter(interface,transformerFunction,objectCustomFormattingFunction);
+
+var objectCustomTypeFunction = function (json) {
+    if(json.identifiers[0] && json.identifiers[0].name){
+        return json.identifiers[0].name;
+    }
+}
+var prettyPrinterScopesVariable = new PrettyPrinter(interface,transformerFunction,objectCustomFormattingFunction,undefined,objectCustomTypeFunction);
