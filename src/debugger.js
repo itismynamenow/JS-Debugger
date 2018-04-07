@@ -266,6 +266,9 @@ var Debugger = function(){
         if(callStackDisplayFunction){
             callStackDisplayFunction({});
         }
+        if(astDisplayFunction){
+            astDisplayFunction({});
+        }
         if(highlightingFunction){
             highlightingFunction({start:{column:0,line:1},end:{column:1,line:1}});
         }

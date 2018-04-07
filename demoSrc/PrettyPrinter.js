@@ -7,12 +7,18 @@ var PrettyPrinter = function(interface,transformerFunction, objectCustomFormatti
     function doesInterfaceMatch(object) {
         if(typeof object == "object" && object!==null){
             var matches = 0;
-            for(var i=0;i<interface.length;i++){
-                if(typeof object[interface[i]] !== "undefined"){
-                    matches++;
+            for(var property in interface){
+                if(typeof object[property] !== "undefined"){
+                    if(interface[property]){
+                        if( object[property]===interface[property]){
+                            matches++;
+                        }
+                    }else{
+                        matches++;
+                    }
                 }
             }
-            return interface.length === matches;
+            return Object.keys(interface).length === matches;
         }else{
             return false;
         }
@@ -32,7 +38,7 @@ var PrettyPrinter = function(interface,transformerFunction, objectCustomFormatti
     };
 };
 
-var interface = ["loc","range","start","end"];
+var interface = {"loc":undefined,"range":undefined,"start":undefined,"end":undefined};
 var transformerFunction = function (object) {
     function copyObject(object)
     {
@@ -62,7 +68,7 @@ var objectCustomFormattingFunction = function (htmlElement,json) {
 
 var prettyPrinterAst = new PrettyPrinter(interface,transformerFunction,objectCustomFormattingFunction);
 
-var interface = ["variables","set","taints","dynamic"];
+var interface = {"variables":undefined,"set":undefined,"taints":undefined,"dynamic":undefined};
 var transformerFunction = function (object) {
     var prettyObject = {
         variables:object.variables,
@@ -74,3 +80,14 @@ var transformerFunction = function (object) {
     return prettyObject
 }
 var prettyPrinterScopes = new PrettyPrinter(interface,transformerFunction);
+
+var interface = {"getter":undefined,"setter":undefined,"proto":undefined,"properties":undefined,"class":"Array"};
+var transformerFunction = function (object) {
+    var prettyObject = [];
+    //Apparently object.property in case of jsInterpreter is not an array but object with 0-n and length properties
+    for(var i=0;i<object.properties.length;i++){
+        prettyObject.push(object.properties[i]);
+    }
+    return prettyObject;
+}
+var prettyPrinterArray = new PrettyPrinter(interface,transformerFunction);

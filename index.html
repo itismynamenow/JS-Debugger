@@ -183,14 +183,14 @@
         function displayScope(scope){
             var scopePanel = document.getElementById('scopePanel');
             scopePanel.innerHTML = "";
-            var formatter = new jsonFormatter(scope);
+            var formatter = new jsonFormatter(scope,undefined,{customPrettyPrinters:[prettyPrinterArray]},"Scope");
             scopePanel.appendChild(formatter.render());
         }
 
         function displayCallStack(callStack){
             var callStackPanel = document.getElementById('callStackPanel');
             callStackPanel.innerHTML = "";
-            var formatter = new jsonFormatter(callStack);
+            var formatter = new jsonFormatter(callStack,undefined,{customPrettyPrinters:[prettyPrinterArray]},"Call stack");
             callStackPanel.appendChild(formatter.render());
         }
 
@@ -201,12 +201,14 @@
 
         function displayAst(ast) {
             var astPanel = document.getElementById("astPanel");
+            astPanel.innerHTML = "";
             var formatter = new JSONFormatter(ast,undefined,{customPrettyPrinters:[prettyPrinterAst]},"AST");
             astPanel.appendChild(formatter.render());
         }
 
         function displayScopes(scopes) {
             var scopesPanel = document.getElementById("scopesPanel");
+            scopesPanel.innerHTML = "";
             var formatter = new JSONFormatter(scopes,undefined,{customPrettyPrinters:[prettyPrinterScopes,prettyPrinterAst]},"All Scopes");
             scopesPanel.appendChild(formatter.render());
         }
@@ -219,7 +221,7 @@
             console.logOld = oldLog;
             var logger = document.getElementById('console');
             console.log = function (message) {
-                const formatter = new jsonFormatter(message);
+                const formatter = new jsonFormatter(message,undefined,{customPrettyPrinters:[prettyPrinterArray]},"");
                 logger.appendChild(formatter.render());
                 logger.scrollTop = logger.scrollHeight - logger.clientHeight;
             };
