@@ -46,6 +46,9 @@ var Debugger = function(){
     var currentStatus = "Debugger just created";
     var watchedVariables = new Set([]);
     var scopeManager;
+    var stepNumber = 0;
+    var callStack =[];
+    var callStackRaw =[];
 
     function addObjectToGlobalScope(object,objectName){
         objectsAddedToGlobalScope.push({'object':object,'objectName':objectName})
@@ -98,6 +101,47 @@ var Debugger = function(){
         });
     }
 
+    function updateWatchedVariables(){
+
+        var currentCallStack = callStackRaw;
+        for(var point of watchedVariables)  {
+            for(var i=0;i<currentCallStack.length;i++){
+                //Check if scopes are same
+                if(currentCallStack[i].node.__scope === point.scope){
+                    if(point.lastStepNumber !== stepNumber){
+                        point.lastUpdateIndex = 0;
+                        point.lastStepNumber = stepNumber;
+                    }
+                    else{
+                        point.lastUpdateIndex++
+                    }
+                    
+                    var variableValueInCurrentScope = currentCallStack[i].scope.properties[point.variable.name]
+                    
+                    //Check if value for current scope exists
+                    if(point.values.length <=point.lastUpdateIndex){
+                        point.values.push(variableValueInCurrentScope);
+                    }
+                    //Check if current value in scope is different from saved value
+                    else if(variableValueInCurrentScope !== point.values[point.lastUpdateIndex]){
+
+                        point.values[point.lastUpdateIndex] = variableValueInCurrentScope;
+                        currentStatus = "Watchpoint was triggered due to change of value of '"+point.variable.name+"' variable in scope #"+point.lastUpdateIndex;
+                        displayStatus();
+                        display();
+                        return "Stop";
+                    }
+                }
+            }
+        }
+        //delete variables from scopes that were destroyed
+        for(var point of watchedVariables)  {
+            while(point.lastUpdateIndex != point.values.length-1){
+                point.values.pop();
+            }
+        }
+    }
+
     function setBreakpoint(lineNumber){
         breakpoints.add(lineNumber);
     }
@@ -115,16 +159,8 @@ var Debugger = function(){
     }
 
     function setWatchpoint(variable,scope){
-        var callStack = getCallStack();
-        var value;
-        if(callStack){
-            for(var i=0;i<callStack.length;i++){
-                if(callStack[i][variable.name]){
-                    value = callStack[i][variable.name];
-                }
-            }            
-        }
-        watchedVariables.add({variable:variable,scope:scope,value:value});
+        watchedVariables.add({variable:variable,scope:scope,values:[],lastStepNumber:undefined,lastUpdateIndex:-1});
+        updateWatchedVariables();
     }
 
     function unsetWatchpoint(variable,scope){
@@ -160,22 +196,9 @@ var Debugger = function(){
             if(!interpreterStep()){
                 break;
             }
-
-            var currentCallStack = getCallStackRaw();
-            for(var point of watchedVariables)  {
-                for(var i=0;i<currentCallStack.length;i++){
-                    //Check if scopes are same
-                    if(currentCallStack[i].node.__scope === point.scope){
-                        //Check if current value in scope is different from saved value
-                        if(currentCallStack[i].scope.properties[point.variable.name] !== point.value){
-                            point.value = currentCallStack[i].scope.properties[point.variable.name];
-                            currentStatus = "Watchpoint was triggered due to change of value of "+point.variable.name;
-                            displayStatus();
-                            display();
-                            break loop1;
-                        }
-                    }
-                }
+            //Update values of watched variables and stop run() if watchpoint was triggered
+            if(updateWatchedVariables()=== "Stop"){
+                break loop1;
             }
         }
     }
@@ -248,6 +271,10 @@ var Debugger = function(){
             currentStatus = "Error during execution. Fix it and press restart";
             displayStatus();
         }
+        stepNumber = (stepNumber+1)%1000000;
+        var getCallStackOut = getCallStack();
+        callStack = getCallStackOut.callStack;
+        callStackRaw = getCallStackOut.callStackRaw;
         return result;
     }
 
@@ -269,39 +296,19 @@ var Debugger = function(){
         if(executionBegun)
         {
             var callStack = [];
+            var callStackRaw = [];
             //stateStack contains stack scopes for all ast nodes so scopes repeate over and over again
             //to make call stack I think we need to select only non repeating scopes (this can be wrong though)
             for(var i=0;i<interpreter.stateStack.length;i++){
-                if((callStack.length == 0 || callStack[callStack.length-1] != interpreter.stateStack[i].scope.properties) && interpreter.stateStack[i].node.type !== "BlockStatement"){
+                if(callStack.length == 0 || callStack[callStack.length-1] != interpreter.stateStack[i].scope.properties){
                     callStack.push(interpreter.stateStack[i].scope.properties);
+                    callStackRaw.push(interpreter.stateStack[i]);
                 }
             }
-            return callStack;
+            return {callStack:callStack,callStackRaw:callStackRaw};
         }else{
             logError("getCallStack","code execution has not started yet");
-            return null;
-        }
-    }
-
-    /**
-     * Function returns scopes as they are represented in escope
-     * @returns {*}
-     */
-    function getCallStackRaw(){
-        if(executionBegun)
-        {
-            var callStack = [];
-            //stateStack contains stack scopes for all ast nodes so scopes repeate over and over again
-            //to make call stack I think we need to select only non repeating scopes (this can be wrong though)
-            for(var i=0;i<interpreter.stateStack.length;i++){
-                if(callStack.length == 0 || callStack[callStack.length-1].scope.properties != interpreter.stateStack[i].scope.properties){
-                    callStack.push(interpreter.stateStack[i]);
-                }
-            }
-            return callStack;
-        }else{
-            logError("getCallStack","code execution has not started yet");
-            return null;
+            return {callStack:null,callStackRaw:null};
         }
     }
 
@@ -373,7 +380,7 @@ var Debugger = function(){
 
     function displayCallStack() {
         if(callStackDisplayFunction){
-            callStackDisplayFunction(getCallStack());
+            callStackDisplayFunction(callStack);
         }
     }
 
