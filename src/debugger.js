@@ -37,12 +37,14 @@ var Debugger = function(){
     var statusDisplayFunction;
     var astDisplayFunction;
     var scopesDisplayFunction;
+    var watchedVariablesDisplayFunction;
     var temporaryDisabledBreakpoint = -1;
     var code;
     var codeWasSet = false;
     var lastExecutedNode;
     var lastScope;
     var currentStatus = "Debugger just created";
+    var watchedVariables = new Set([]);
 
     function addObjectToGlobalScope(object,objectName){
         objectsAddedToGlobalScope.push({'object':object,'objectName':objectName})
@@ -91,13 +93,26 @@ var Debugger = function(){
         breakpointsEnabled = true;
     }
 
-    // setWatchpoint(){
-    //
-    // }
-    //
-    // unsetWatchpoint(){
-    //
-    // }
+    function setWatchpoint(variable,scope){
+        var callStack = getCallStack();
+        var value;
+        if(callStack){
+            for(var i=0;i<callStack.length;i++){
+                if(callStack[i][variable.name]){
+                    value = callStack[i][variable.name];
+                }
+            }            
+        }
+        watchedVariables.add({variable:variable,scope:scope,value:value});
+    }
+
+    function unsetWatchpoint(variable,scope){
+        watchedVariables.forEach(function(object){
+            if(object.variable === variable && object.scope === scope){
+                watchedVariables.delete(object);
+            }
+        });
+    }
 
     function run(){
         executionStartProcedures();
@@ -171,6 +186,17 @@ var Debugger = function(){
         lastScope = getScope();
         try{
             result = interpreter.step();
+            var currentCallStack = getCallStackRaw();
+            watchedVariables.forEach(function(point){
+                for(var i=0;i<currentCallStack.length;i++){
+                    if(currentCallStack[i].node === point.scope.block){
+                        if(currentCallStack[i].scope.properties[point.variable.name] !== point.value){
+                            point.value = point.scope[point.variable.name];
+                            currentStatus += "Watchpoint was triggered due to change of value of "+point.variable.name;
+                        }
+                    }
+                }
+            })
             if(!result){
                 currentStatus = "No more steps left. Execution is over. See console for output. See scope for state of global scope. Press restart to continue";
                 displayStatus();
@@ -229,6 +255,28 @@ var Debugger = function(){
         }
     }
 
+    /**
+     * Function returns scopes as they are represented in escope
+     * @returns {*}
+     */
+    function getCallStackRaw(){
+        if(executionBegun)
+        {
+            var callStack = [];
+            //stateStack contains stack scopes for all ast nodes so scopes repeate over and over again
+            //to make call stack I think we need to select only non repeating scopes (this can be wrong though)
+            for(var i=0;i<interpreter.stateStack.length;i++){
+                if(callStack.length == 0 || callStack[callStack.length-1] != interpreter.stateStack[i].scope.properties){
+                    callStack.push(interpreter.stateStack[i]);
+                }
+            }
+            return callStack;
+        }else{
+            logError("getCallStack","code execution has not started yet");
+            return null;
+        }
+    }
+
     function setCallbackForCodeHighlighting(callback){
         highlightingFunction = callback;
     }
@@ -253,10 +301,15 @@ var Debugger = function(){
         scopesDisplayFunction = callback;
     }
 
+    function setCallbackForWatchedVariablesDisplay(callback){
+        watchedVariablesDisplayFunction = callback;
+    }
+
     function display() {
         highlightCode(interpreter.stateStack[interpreter.stateStack.length - 1].node);
         displayScope();
         displayCallStack();
+        displayWatchedVaraiables();
     }
 
     function cleanDisplay(){
@@ -314,6 +367,12 @@ var Debugger = function(){
         }
     }
 
+    function displayWatchedVaraiables(){
+        if(watchedVariablesDisplayFunction){
+            watchedVariablesDisplayFunction(Array.from(watchedVariables));
+        }
+    }
+
 
     function logError(location, message){
         console.error("In Debugger::"+location+"() '"+message+"'");
@@ -340,11 +399,14 @@ var Debugger = function(){
         stepIn:stepIn,
         setBreakpoint:setBreakpoint,
         unsetBreakpoint:unsetBreakpoint,
+        setWatchpoint:setWatchpoint,
+        unsetWatchpoint:unsetWatchpoint,
         setCallbackForCodeHighlighting:setCallbackForCodeHighlighting,
         setCallbackForCallStackDisplay:setCallbackForCallStackDisplay,
         setCallbackForScopeDisplay:setCallbackForScopeDisplay,
         setCallbackForStatusChange:setCallbackForStatusChange,
         setCallbackForAstDisplay:setCallbackForAstDisplay,
-        setCallbackForScopesDisplay:setCallbackForScopesDisplay
+        setCallbackForScopesDisplay:setCallbackForScopesDisplay,
+        setCallbackForWatchedVariablesDisplay:setCallbackForWatchedVariablesDisplay
     }
 }

@@ -80,12 +80,22 @@ var transformerFunction = function (object) {
         variables:object.variables,
         references:object.references,
         parentScope:object.upper,
-        childScopes:object.childScopes,
-        astNode:object.block
+        childScopes:object.childScopes
     }
     return prettyObject
 }
-var prettyPrinterScopes = new PrettyPrinter(interface,transformerFunction);
+var objectCustomFormattingFunction = function (htmlElement,json) {
+    var button = document.createElement("BUTTON");
+    button.innerHTML = "Show";
+    button.onclick = onButtonClick;
+    htmlElement.appendChild(button);
+    function onButtonClick(){
+        if(json.block && json.block.loc){
+            codeEditor.setMarker(json.block.loc);
+        }
+    }
+}
+var prettyPrinterScopes = new PrettyPrinter(interface,transformerFunction,objectCustomFormattingFunction);
 //Array
 var interface = {"getter":undefined,"setter":undefined,"proto":undefined,"properties":undefined,"class":"Array"};
 var transformerFunction = function (object) {
@@ -122,7 +132,24 @@ var objectCustomFormattingFunction = function (htmlElement,json) {
             codeEditor.setMarker(json.identifiers[0].loc);
         }
     }
+    var button = document.createElement("BUTTON");
+    button.innerHTML = "Set watchpoint";
+    button.onclick = onButtonClick;
+    htmlElement.appendChild(button);
+    function onButtonClick(){
+        if(button.innerHTML === "Set watchpoint"){
+            button.innerHTML = "Remove watchpoint";
+            debuger.setWatchpoint(json.identifiers[0],json.scope);
+
+        }else{
+            button.innerHTML = "Set watchpoint";
+            debuger.unsetWatchpoint(json.identifiers[0],json.scope);
+        }
+
+    }
+    
 }
+
 
 var objectCustomTypeFunction = function (json) {
     if(json.identifiers[0] && json.identifiers[0].name){

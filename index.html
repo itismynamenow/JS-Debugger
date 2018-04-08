@@ -74,6 +74,8 @@
             <div>  <h3 style="margin: 15px;">  <a href="https://github.com/itismynamenow/JS-Debugger">JS-Debugger </a>demo </h3></div>
             <h5 style="margin: 10px;"> Debugger status:</h5>
             <p id="statusPanel" style="margin: 20px;"></p>
+            <h5 style="margin: 10px;"> Watched Variables:</h5>
+            <p id="watchPanel" style="margin: 20px;"></p>
             <h5 style="text-indent: 1em;"> Call stack:</h5>
             <div id="callStackPanel" style="margin: 20px;"></div>
             <hr />
@@ -164,6 +166,7 @@
         debuger.setCallbackForAstDisplay(displayAst);
         debuger.setCallbackForStatusChange(displayStatus);
         debuger.setCallbackForScopesDisplay(displayScopes);
+        debuger.setCallbackForWatchedVariablesDisplay(displayWatchedVariables);
 
         debuger.setCode(codeEditor.getText());
 
@@ -211,6 +214,13 @@
             scopesPanel.innerHTML = "";
             var formatter = new JSONFormatter(scopes,undefined,{customPrettyPrinters:[prettyPrinterScopes,prettyPrinterAst,prettyPrinterScopesVariable,prettyPrinterScopesReference]},"All Scopes");
             scopesPanel.appendChild(formatter.render());
+        }
+
+        function displayWatchedVariables(watchedVariables) {
+            var watchedVariablesPanel = document.getElementById("watchPanel");
+            watchedVariablesPanel.innerHTML = "";
+            var formatter = new JSONFormatter(watchedVariables,undefined,{customPrettyPrinters:[prettyPrinterArray]},"Watched variables");
+            watchedVariablesPanel.appendChild(formatter.render());
         }
 
         (function () {
