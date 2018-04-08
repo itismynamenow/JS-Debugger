@@ -45,6 +45,7 @@ var Debugger = function(){
     var lastScope;
     var currentStatus = "Debugger just created";
     var watchedVariables = new Set([]);
+    var scopeManager;
 
     function addObjectToGlobalScope(object,objectName){
         objectsAddedToGlobalScope.push({'object':object,'objectName':objectName})
@@ -66,8 +67,9 @@ var Debugger = function(){
             cleanDisplay();
             displayAst();
 
-            var scopeManager = escope.analyze(interpreter.ast,{sourceType:"script",ecmaVersion:5});
+            scopeManager = escope.analyze(interpreter.ast,{sourceType:"script",ecmaVersion:5});
             var currentScope = scopeManager.acquire(interpreter.ast);
+            addScopeDataToInterpretersAst();
             displayScopes(scopeManager.scopes);
         }
         catch(error){
@@ -75,6 +77,25 @@ var Debugger = function(){
             currentStatus = "Code was not set due to error. Fix error and restart";
         }
         displayStatus();
+    }
+
+    function addScopeDataToInterpretersAst(){
+        scopeStack = [];
+        estraverse.traverse(interpreter.ast, {
+            enter: function (node, parent) {
+                if (node.type == 'FunctionExpression' || node.type == 'Program')
+                {
+                    scopeStack.push(scopeManager.acquire(node));
+                }
+                node["__scope"] = scopeStack[scopeStack.length-1];
+            },
+            leave: function (node, parent) {
+                if (node.type == 'FunctionExpression' || node.type == 'Program')
+                {
+                    scopeStack.pop();
+                }                
+            }
+        });
     }
 
     function setBreakpoint(lineNumber){
@@ -116,6 +137,7 @@ var Debugger = function(){
 
     function run(){
         executionStartProcedures();
+        loop1:
         while (!interpreter.paused) {
             if (interpreter.stateStack.length > 0) {
                 var loc = interpreter.stateStack[interpreter.stateStack.length - 1].node.loc
@@ -137,6 +159,23 @@ var Debugger = function(){
             //Check if are any steps left
             if(!interpreterStep()){
                 break;
+            }
+
+            var currentCallStack = getCallStackRaw();
+            for(var point of watchedVariables)  {
+                for(var i=0;i<currentCallStack.length;i++){
+                    //Check if scopes are same
+                    if(currentCallStack[i].node.__scope === point.scope){
+                        //Check if current value in scope is different from saved value
+                        if(currentCallStack[i].scope.properties[point.variable.name] !== point.value){
+                            point.value = currentCallStack[i].scope.properties[point.variable.name];
+                            currentStatus = "Watchpoint was triggered due to change of value of "+point.variable.name;
+                            displayStatus();
+                            display();
+                            break loop1;
+                        }
+                    }
+                }
             }
         }
     }
@@ -186,17 +225,6 @@ var Debugger = function(){
         lastScope = getScope();
         try{
             result = interpreter.step();
-            var currentCallStack = getCallStackRaw();
-            watchedVariables.forEach(function(point){
-                for(var i=0;i<currentCallStack.length;i++){
-                    if(currentCallStack[i].node === point.scope.block){
-                        if(currentCallStack[i].scope.properties[point.variable.name] !== point.value){
-                            point.value = point.scope[point.variable.name];
-                            currentStatus += "Watchpoint was triggered due to change of value of "+point.variable.name;
-                        }
-                    }
-                }
-            })
             if(!result){
                 currentStatus = "No more steps left. Execution is over. See console for output. See scope for state of global scope. Press restart to continue";
                 displayStatus();
@@ -244,7 +272,7 @@ var Debugger = function(){
             //stateStack contains stack scopes for all ast nodes so scopes repeate over and over again
             //to make call stack I think we need to select only non repeating scopes (this can be wrong though)
             for(var i=0;i<interpreter.stateStack.length;i++){
-                if(callStack.length == 0 || callStack[callStack.length-1] != interpreter.stateStack[i].scope.properties){
+                if((callStack.length == 0 || callStack[callStack.length-1] != interpreter.stateStack[i].scope.properties) && interpreter.stateStack[i].node.type !== "BlockStatement"){
                     callStack.push(interpreter.stateStack[i].scope.properties);
                 }
             }
@@ -266,7 +294,7 @@ var Debugger = function(){
             //stateStack contains stack scopes for all ast nodes so scopes repeate over and over again
             //to make call stack I think we need to select only non repeating scopes (this can be wrong though)
             for(var i=0;i<interpreter.stateStack.length;i++){
-                if(callStack.length == 0 || callStack[callStack.length-1] != interpreter.stateStack[i].scope.properties){
+                if(callStack.length == 0 || callStack[callStack.length-1].scope.properties != interpreter.stateStack[i].scope.properties){
                     callStack.push(interpreter.stateStack[i]);
                 }
             }
