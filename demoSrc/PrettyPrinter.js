@@ -132,20 +132,21 @@ var objectCustomFormattingFunction = function (htmlElement,json) {
             codeEditor.setMarker(json.identifiers[0].loc);
         }
     }
+
     var button = document.createElement("BUTTON");
-    button.innerHTML = "Set watchpoint";
-    button.onclick = onButtonClick;
+    button.innerHTML = "Watch";
+    button.onclick = onButtonClickWatch;
     htmlElement.appendChild(button);
-    function onButtonClick(){
-        if(button.innerHTML === "Set watchpoint"){
-            button.innerHTML = "Remove watchpoint";
-            debuger.setWatchpoint(json.identifiers[0],json.scope);
+    function onButtonClickWatch(){
+        debuger.setWatchpoint(json.identifiers[0],json.scope);
+    }
 
-        }else{
-            button.innerHTML = "Set watchpoint";
-            debuger.unsetWatchpoint(json.identifiers[0],json.scope);
-        }
-
+    var button = document.createElement("BUTTON");
+    button.innerHTML = "Unwatch";
+    button.onclick = onButtonClickUnwatch;
+    htmlElement.appendChild(button);
+    function onButtonClickUnwatch(){
+        debuger.unsetWatchpoint(json.identifiers[0],json.scope);
     }
     
 }

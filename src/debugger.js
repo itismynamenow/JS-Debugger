@@ -121,6 +121,10 @@ var Debugger = function(){
                     //Check if value for current scope exists
                     if(point.values.length <=point.lastUpdateIndex){
                         point.values.push(variableValueInCurrentScope);
+                        currentStatus = "Watchpoint was triggered due to change of value of '"+point.variable.name+"' variable in scope #"+point.lastUpdateIndex;
+                        displayStatus();
+                        display();
+                        return "Stop";
                     }
                     //Check if current value in scope is different from saved value
                     else if(variableValueInCurrentScope !== point.values[point.lastUpdateIndex]){
@@ -167,6 +171,7 @@ var Debugger = function(){
         watchedVariables.forEach(function(object){
             if(object.variable === variable && object.scope === scope){
                 watchedVariables.delete(object);
+                updateWatchedVariables();
             }
         });
     }
